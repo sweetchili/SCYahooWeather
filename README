@@ -1,0 +1,9 @@
+Objective-C wrapper around Yahoo's weather service.
+
+Initial release: (0.1)
+Get current weather from given WOEID-code. 
+
+TODO:
+Thearding
+Delegate pattern callback (fetchWeatherForWOEID:unit:withDelegate)
+Weather forecast

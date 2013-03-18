@@ -23,16 +23,12 @@
 #import <Foundation/Foundation.h>
 #import "SCWeather.h"
 
-@interface SCYahooWeatherParser : NSObject <NSXMLParserDelegate> {
-    int WOEID;
-    SCWeatherUnit unit;
-    
-    @private
-    NSDictionary *_data;
-}
+@interface SCYahooWeatherParser : NSObject
 
-- (id)initWithWOEID:(int)_WOEID weatherUnit:(SCWeatherUnit)_unit;
-
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit;
 - (SCWeather *)parse;
+
+@property (readonly) NSInteger WOEID;
+@property (readonly) SCWeatherUnit unit;
 
 @end

@@ -22,14 +22,6 @@
 
 #import "SCWeather.h"
 
-
 @implementation SCWeather
-
-@synthesize condition, unit, temperature, description;
-
-- (void)dealloc {
-    [description release];
-    [super dealloc];
-}
 
 @end

@@ -79,16 +79,11 @@ typedef enum {
     SCWeatherConditionNotAvailable,
 } SCWeatherCondition;
 
-@interface SCWeather : NSObject {
-    SCWeatherCondition condition;
-    SCWeatherUnit unit;
-    int temperature;
-    NSString *description;
-}
+@interface SCWeather : NSObject
 
 @property (nonatomic, assign) SCWeatherCondition condition;
 @property (nonatomic, assign) SCWeatherUnit unit;
-@property (nonatomic, assign) int temperature;
+@property (nonatomic, assign) NSInteger temperature;
 @property (nonatomic, retain) NSString *description;
 
 @end

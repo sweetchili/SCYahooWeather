@@ -27,31 +27,35 @@
 #define kSCYahooWeatherXMLKeyText           @"text"
 #define kSCYahooWeatherXMLKeyCondition      @"code"
 
+@interface SCYahooWeatherParser () <NSXMLParserDelegate>
+@property (strong) NSDictionary *data;
+@property (readwrite) NSInteger WOEID;
+@property (readwrite) SCWeatherUnit unit;
+@end
+
 @implementation SCYahooWeatherParser
 
-- (id)initWithWOEID:(int)_WOEID weatherUnit:(SCWeatherUnit)_unit {
-    self = [super init];
-    
-    if(self) {
-        WOEID = _WOEID;
-        unit = _unit;
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit {
+    if (self = [super init]) {
+        self.WOEID = WOEID;
+        self.unit = unit;
     }
-    
     return self;
 }
 
 - (SCWeather *)parse {
-    NSURL *URL = [[NSURL alloc] initWithString:[NSString stringWithFormat:@"http://weather.yahooapis.com/forecastrss?w=%d&u=%@", WOEID, (unit == SCWeatherUnitCelcius) ? @"c" : @"f"]];
+    NSString *URLString = [NSString stringWithFormat:@"http://weather.yahooapis.com/forecastrss?w=%d&u=%@", self.WOEID, (self.unit == SCWeatherUnitCelcius) ? @"c" : @"f"];
+    NSURL *URL = [[NSURL alloc] initWithString:URLString];
     
     NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:URL];
-    [xmlParser setDelegate:self];
+    xmlParser.delegate = self;
     
     SCWeather *weather = nil;
-    if([xmlParser parse]) {
-        weather = [[[SCWeather alloc] init] autorelease];
-        weather.description = [_data objectForKey:kSCYahooWeatherXMLKeyText];
-        weather.temperature = [[_data objectForKey:kSCYahooWeatherXMLKeyTemp] intValue];
-        weather.condition = [[_data objectForKey:kSCYahooWeatherXMLKeyCondition] intValue];
+    if ([xmlParser parse]) {
+        weather = [SCWeather new];
+        weather.description = self.data[kSCYahooWeatherXMLKeyText];
+        weather.temperature = [self.data[kSCYahooWeatherXMLKeyTemp] intValue];
+        weather.condition = [self.data[kSCYahooWeatherXMLKeyCondition] intValue];
     }
     
     return weather;
@@ -62,13 +66,7 @@
 #pragma mark NSXMLParser delegate methods
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict {
-    if([elementName isEqualToString:kSCYahooWeatherXMLKeyConditionTag]) {
-        if(_data) {
-            [_data release];
-        }
-        
-        _data = [attributeDict retain];
-    }
+    if([elementName isEqualToString:kSCYahooWeatherXMLKeyConditionTag]) self.data = attributeDict;
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName {

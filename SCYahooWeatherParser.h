@@ -2,7 +2,11 @@
 // SCYahooWeatherParser.h
 // SCYahooWeather
 //
-// Created by sweetchili on 2011-06-25.
+// Version History
+// ----
+//  * 0.1 (2011-06-25): created by sweetchili
+//  * 0.2 (2013-03-18): upgraded to support ARC by josh-fuggle
+//  * 0.3 (2013-03-18): added support for delegation by josh-fuggle
 // 
 // This file is part of SCYahooWeather.
 //
@@ -23,16 +27,20 @@
 #import <Foundation/Foundation.h>
 #import "SCWeather.h"
 
-@interface SCYahooWeatherParser : NSObject <NSXMLParserDelegate> {
-    int WOEID;
-    SCWeatherUnit unit;
-    
-    @private
-    NSDictionary *_data;
-}
+@protocol SCYahooWeatherParserDelegate;
 
-- (id)initWithWOEID:(int)_WOEID weatherUnit:(SCWeatherUnit)_unit;
+@interface SCYahooWeatherParser : NSObject
 
-- (SCWeather *)parse;
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate;
+- (void)parse;
 
+@property (readonly, weak) id <SCYahooWeatherParserDelegate> delegate;
+
+@property (readonly) NSInteger WOEID;
+@property (readonly) SCWeatherUnit unit;
+
+@end
+
+@protocol SCYahooWeatherParserDelegate
+- (void)yahooWeatherParser:(SCYahooWeatherParser *)parser recievedWeatherInformation:(SCWeather *)weather;
 @end

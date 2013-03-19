@@ -11,13 +11,23 @@ Objective-C wrapper around Yahoo's weather service.
 
 ## Sample Usage ##
 ``` objective-c
-- (void)initializeWeather {    
+@interface SomeClass () <SCYahooWeatherParserDelegate>
+@end
+
+@implementation SomeClass
+
+...
+
+- (void)someFunction {    
     static NSInteger weatherID = 1100661;
     SCYahooWeatherParser *parser = [[SCYahooWeatherParser alloc] initWithWOEID:weatherID weatherUnit:SCWeatherUnitCelcius delegate:self];
     [parser parse];
 }
 
+\#pragma mark - SCYahooWeatherParserDelegate
 - (void)yahooWeatherParser:(SCYahooWeatherParser *)parser recievedWeatherInformation:(SCWeather *)weather {
     NSLog(weather);
 }
+
+@end
 ```

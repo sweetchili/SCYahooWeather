@@ -24,7 +24,7 @@ Objective-C wrapper around Yahoo's weather service.
     [parser parse];
 }
 
-\#pragma mark - SCYahooWeatherParserDelegate
+#pragma mark - SCYahooWeatherParserDelegate
 - (void)yahooWeatherParser:(SCYahooWeatherParser *)parser recievedWeatherInformation:(SCWeather *)weather {
     NSLog(weather);
 }

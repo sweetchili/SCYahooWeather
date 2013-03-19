@@ -2,7 +2,11 @@
 // SCYahooWeatherParser.m
 // SCYahooWeather
 //
-// Created by sweetchili on 2011-06-25.
+// Version History
+// ----
+//  * 0.1 (2011-06-25): created by sweetchili
+//  * 0.2 (2013-03-18): upgraded to support ARC by josh-fuggle
+//  * 0.3 (2013-03-18): added support for delegation by josh-fuggle
 // 
 // This file is part of SCYahooWeather.
 //
@@ -22,56 +26,69 @@
 
 #import "SCYahooWeatherParser.h"
 
+#define kSCYahooWeatherRequestURL           @"http://weather.yahooapis.com/forecastrss?w=%d&u=%@"
+
 #define kSCYahooWeatherXMLKeyConditionTag   @"yweather:condition"
 #define kSCYahooWeatherXMLKeyTemp           @"temp"
 #define kSCYahooWeatherXMLKeyText           @"text"
 #define kSCYahooWeatherXMLKeyCondition      @"code"
 
+@interface SCYahooWeatherParser () <NSXMLParserDelegate>
+@property (weak, readwrite) id <SCYahooWeatherParserDelegate> delegate;
+@property (strong) NSDictionary *data;
+@property (readwrite) NSInteger WOEID;
+@property (readwrite) SCWeatherUnit unit;
+@end
+
 @implementation SCYahooWeatherParser
 
-- (id)initWithWOEID:(int)_WOEID weatherUnit:(SCWeatherUnit)_unit {
-    self = [super init];
-    
-    if(self) {
-        WOEID = _WOEID;
-        unit = _unit;
+#pragma mark - Public API
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
+{
+    if (self = [super init]) {
+        self.WOEID = WOEID;
+        self.unit = unit;
+        self.delegate = delegate;
     }
-    
     return self;
 }
 
-- (SCWeather *)parse {
-    NSURL *URL = [[NSURL alloc] initWithString:[NSString stringWithFormat:@"http://weather.yahooapis.com/forecastrss?w=%d&u=%@", WOEID, (unit == SCWeatherUnitCelcius) ? @"c" : @"f"]];
+- (void)parse
+{
+    NSString *URLString = [NSString stringWithFormat:kSCYahooWeatherRequestURL, self.WOEID, [self weatherUniString]];
+    NSURL *URL = [[NSURL alloc] initWithString:URLString];
     
-    NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:URL];
-    [xmlParser setDelegate:self];
-    
-    SCWeather *weather = nil;
-    if([xmlParser parse]) {
-        weather = [[[SCWeather alloc] init] autorelease];
-        weather.description = [_data objectForKey:kSCYahooWeatherXMLKeyText];
-        weather.temperature = [[_data objectForKey:kSCYahooWeatherXMLKeyTemp] intValue];
-        weather.condition = [[_data objectForKey:kSCYahooWeatherXMLKeyCondition] intValue];
-    }
-    
-    return weather;
-}
-
-
-#pragma mark -
-#pragma mark NSXMLParser delegate methods
-
-- (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict {
-    if([elementName isEqualToString:kSCYahooWeatherXMLKeyConditionTag]) {
-        if(_data) {
-            [_data release];
-        }
+    // Begin parsing in a background thread
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:URL];
+        xmlParser.delegate = self;
         
-        _data = [attributeDict retain];
-    }
+        [xmlParser parse];
+    });
 }
 
-- (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName {
+
+#pragma mark NSXMLParser
+- (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict
+{
+    
+    if(![elementName isEqualToString:kSCYahooWeatherXMLKeyConditionTag]) return;
+    
+    SCWeather *weather = [SCWeather new];
+    weather.weatherString = attributeDict[kSCYahooWeatherXMLKeyText];
+    weather.temperature = [attributeDict[kSCYahooWeatherXMLKeyTemp] intValue];
+    weather.condition = [attributeDict[kSCYahooWeatherXMLKeyCondition] intValue];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+    });
+}
+
+
+#pragma mark - Helper Methods
+- (NSString *)weatherUniString
+{
+    return (self.unit == SCWeatherUnitCelcius ? @"c" : @"f");
 }
 
 @end

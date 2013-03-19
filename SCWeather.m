@@ -2,7 +2,11 @@
 // SCWeather.m
 // SCYahooWeather
 //
-// Created by sweetchili on 2011-06-25.
+// Version History
+// ----
+//  * 0.1 (2011-06-25): created by sweetchili
+//  * 0.2 (2013-03-18): upgraded to support ARC by josh-fuggle
+//  * 0.3 (2013-03-18): added support for delegation by josh-fuggle
 // 
 // This file is part of SCYahooWeather.
 //
@@ -22,14 +26,11 @@
 
 #import "SCWeather.h"
 
-
 @implementation SCWeather
 
-@synthesize condition, unit, temperature, description;
-
-- (void)dealloc {
-    [description release];
-    [super dealloc];
+- (NSString *)description
+{
+    if (!self.weatherString) return [super description];
+    return self.weatherString;
 }
-
 @end

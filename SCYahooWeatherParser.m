@@ -58,9 +58,13 @@
     NSString *URLString = [NSString stringWithFormat:kSCYahooWeatherRequestURL, self.WOEID, [self weatherUniString]];
     NSURL *URL = [[NSURL alloc] initWithString:URLString];
     
-    NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:URL];
-    xmlParser.delegate = self;
-    [xmlParser parse];
+    // Begin parsing in a background thread
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:URL];
+        xmlParser.delegate = self;
+        
+        [xmlParser parse];
+    });
 }
 
 
@@ -75,7 +79,9 @@
     weather.temperature = [attributeDict[kSCYahooWeatherXMLKeyTemp] intValue];
     weather.condition = [attributeDict[kSCYahooWeatherXMLKeyCondition] intValue];
     
-    [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+    });
 }
 
 

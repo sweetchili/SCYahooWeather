@@ -2,7 +2,7 @@
 Objective-C wrapper around Yahoo's weather service.
 
 ## Version History ##
-* 0.1 (sweetchilli) - Get current weather from given WOEID-code. 
+* 0.1 (sweetchili) - Get current weather from given WOEID-code. 
 * 0.2 (josh-fuggle) - Modernized the code, made the library compatible with ARC
 * 0.3 (josh-fuggle) - Added support for delegation. Web requests and XML parsing will now be performed in a background thread.
 

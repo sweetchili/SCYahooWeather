@@ -2,34 +2,22 @@
 Objective-C wrapper around Yahoo's weather service.
 
 ## Version History ##
-* 0.1 - Get current weather from given WOEID-code. 
-* 0.2 - Modernized the code, made the library compatible with ARC
+* 0.1 (sweetchilli) - Get current weather from given WOEID-code. 
+* 0.2 (josh-fuggle) - Modernized the code, made the library compatible with ARC
+* 0.3 (josh-fuggle) - Added support for delegation. Web requests and XML parsing will now be performed in a background thread.
 
 ## Future Releases ##
-* Threading
-* Delegate pattern callback (fetchWeatherForWOEID:unit:withDelegate)
 * Weather forecast
 
-## Example Usage ##
-### Synchronous ###
+## Sample Usage ##
 ``` objective-c
-static NSInteger weatherID = 1100661;
-SCYahooWeatherParser *parser = [[SCYahooWeatherParser alloc] initWithWOEID:weatherID weatherUnit:SCWeatherUnitCelcius];
-SCWeather *weather = [parser parse];
-self.weatherDescription = weather.description;
-```
-
-### Asynchronous ###
-``` objective-c
-dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        
+- (void)initializeWeather {    
     static NSInteger weatherID = 1100661;
-    SCYahooWeatherParser *parser = [[SCYahooWeatherParser alloc] initWithWOEID:weatherID weatherUnit:SCWeatherUnitCelcius];
-    SCWeather *weather = [parser parse];
-    
-    @synchronized(self) {
-        self.weatherDescription = weather.description;
-    }
-    
-});
+    SCYahooWeatherParser *parser = [[SCYahooWeatherParser alloc] initWithWOEID:weatherID weatherUnit:SCWeatherUnitCelcius delegate:self];
+    [parser parse];
+}
+
+- (void)yahooWeatherParser:(SCYahooWeatherParser *)parser recievedWeatherInformation:(SCWeather *)weather {
+    NSLog(weather);
+}
 ```

@@ -2,13 +2,13 @@
 Objective-C wrapper around Yahoo's weather service.
 
 ## Version History ##
-# 0.1 - Get current weather from given WOEID-code. 
-# 0.2 - Modernized the code, made the library compatible with ARC
+* 0.1 - Get current weather from given WOEID-code. 
+* 0.2 - Modernized the code, made the library compatible with ARC
 
 ## Future Releases ##
-1. Threading
-2. Delegate pattern callback (fetchWeatherForWOEID:unit:withDelegate)
-3. Weather forecast
+* Threading
+* Delegate pattern callback (fetchWeatherForWOEID:unit:withDelegate)
+* Weather forecast
 
 ## Example Usage ##
 ### Synchronous ###

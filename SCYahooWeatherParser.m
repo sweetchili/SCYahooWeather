@@ -44,7 +44,8 @@
 
 @implementation SCYahooWeatherParser
 
-#pragma mark - Public API
+#pragma mark - Initialization
+#pragma mark Initialize with Delegates
 - (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
 {
     if (self = [super init]) {
@@ -56,6 +57,13 @@
     return self;
 }
 
++ (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
+{
+    return [[SCYahooWeatherParser alloc] initWithWOEID:WOEID weatherUnit:unit delegate:delegate];
+}
+
+
+#pragma mark - Parsing
 - (void)parse
 {
     NSString *URLString = [NSString stringWithFormat:kSCYahooWeatherRequestURL, self.WOEID, [self weatherUniString]];

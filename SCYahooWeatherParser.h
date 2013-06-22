@@ -31,7 +31,11 @@
 
 @interface SCYahooWeatherParser : NSObject
 
+#pragma mark - Initialization
+#pragma mark Initialize with Delegates
 - (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate;
++ (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate;
+
 - (void)parse;
 
 @property (readonly, weak) id <SCYahooWeatherParserDelegate> delegate;

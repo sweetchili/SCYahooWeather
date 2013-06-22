@@ -38,6 +38,8 @@
 @property (strong) NSDictionary *data;
 @property (readwrite) NSInteger WOEID;
 @property (readwrite) SCWeatherUnit unit;
+// keep a strong reference to self while parsing is underway
+@property (strong) SCYahooWeatherParser *selfReference;
 @end
 
 @implementation SCYahooWeatherParser
@@ -49,6 +51,7 @@
         self.WOEID = WOEID;
         self.unit = unit;
         self.delegate = delegate;
+        self.selfReference = self;
     }
     return self;
 }
@@ -67,7 +70,6 @@
     });
 }
 
-
 #pragma mark NSXMLParser
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict
 {
@@ -82,6 +84,12 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
     });
+}
+
+-(void)parserDidEndDocument:(NSXMLParser *)parser
+{
+    // Weather parse is no longer required
+    self.selfReference = nil;
 }
 
 

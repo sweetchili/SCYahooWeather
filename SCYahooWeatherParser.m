@@ -35,6 +35,7 @@
 
 @interface SCYahooWeatherParser () <NSXMLParserDelegate>
 @property (weak, readwrite) id <SCYahooWeatherParserDelegate> delegate;
+@property (copy, readwrite) SCYahooWeatherInfoBlock block;
 @property (strong) NSDictionary *data;
 @property (readwrite) NSInteger WOEID;
 @property (readwrite) SCWeatherUnit unit;
@@ -60,6 +61,23 @@
 + (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
 {
     return [[SCYahooWeatherParser alloc] initWithWOEID:WOEID weatherUnit:unit delegate:delegate];
+}
+
+#pragma mark Initialize with Blocks
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit block:(SCYahooWeatherInfoBlock)block
+{
+    if (self = [super init]) {
+        self.WOEID = WOEID;
+        self.unit = unit;
+        self.block = block;
+        self.selfReference = self;
+    }
+    return self;
+}
+
++ (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit block:(SCYahooWeatherInfoBlock)block
+{
+    return [[SCYahooWeatherParser alloc] initWithWOEID:WOEID weatherUnit:unit block:block];
 }
 
 
@@ -90,7 +108,17 @@
     weather.condition = [attributeDict[kSCYahooWeatherXMLKeyCondition] intValue];
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+        
+        // If the client chose delegates as the primary callback
+        if (self.delegate) {
+            [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+        }
+        
+        // If the client chose blocks as the callback
+        if (self.block) {
+            self.block(self, weather);
+        }
+        
     });
 }
 

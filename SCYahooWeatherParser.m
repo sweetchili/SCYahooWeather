@@ -35,24 +35,53 @@
 
 @interface SCYahooWeatherParser () <NSXMLParserDelegate>
 @property (weak, readwrite) id <SCYahooWeatherParserDelegate> delegate;
+@property (copy, readwrite) SCYahooWeatherInfoBlock block;
 @property (strong) NSDictionary *data;
 @property (readwrite) NSInteger WOEID;
 @property (readwrite) SCWeatherUnit unit;
+// keep a strong reference to self while parsing is underway
+@property (strong) SCYahooWeatherParser *selfReference;
 @end
 
 @implementation SCYahooWeatherParser
 
-#pragma mark - Public API
+#pragma mark - Initialization
+#pragma mark Initialize with Delegates
 - (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
 {
     if (self = [super init]) {
         self.WOEID = WOEID;
         self.unit = unit;
         self.delegate = delegate;
+        self.selfReference = self;
     }
     return self;
 }
 
++ (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit delegate:(id <SCYahooWeatherParserDelegate>)delegate
+{
+    return [[SCYahooWeatherParser alloc] initWithWOEID:WOEID weatherUnit:unit delegate:delegate];
+}
+
+#pragma mark Initialize with Blocks
+- (id)initWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit block:(SCYahooWeatherInfoBlock)block
+{
+    if (self = [super init]) {
+        self.WOEID = WOEID;
+        self.unit = unit;
+        self.block = block;
+        self.selfReference = self;
+    }
+    return self;
+}
+
++ (id)weatherParserWithWOEID:(NSInteger)WOEID weatherUnit:(SCWeatherUnit)unit block:(SCYahooWeatherInfoBlock)block
+{
+    return [[SCYahooWeatherParser alloc] initWithWOEID:WOEID weatherUnit:unit block:block];
+}
+
+
+#pragma mark - Parsing
 - (void)parse
 {
     NSString *URLString = [NSString stringWithFormat:kSCYahooWeatherRequestURL, self.WOEID, [self weatherUniString]];
@@ -67,7 +96,6 @@
     });
 }
 
-
 #pragma mark NSXMLParser
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qualifiedName attributes:(NSDictionary *)attributeDict
 {
@@ -80,8 +108,24 @@
     weather.condition = [attributeDict[kSCYahooWeatherXMLKeyCondition] intValue];
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+        
+        // If the client chose delegates as the primary callback
+        if (self.delegate) {
+            [self.delegate yahooWeatherParser:self recievedWeatherInformation:weather];
+        }
+        
+        // If the client chose blocks as the callback
+        if (self.block) {
+            self.block(self, weather);
+        }
+        
     });
+}
+
+-(void)parserDidEndDocument:(NSXMLParser *)parser
+{
+    // Weather parse is no longer required
+    self.selfReference = nil;
 }
 
 
